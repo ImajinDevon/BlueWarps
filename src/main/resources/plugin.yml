@@ -1,0 +1,7 @@
+name: BlueWarps
+version: '${version}'
+main: com.github.imajindevon.bluewarps.BlueWarps
+api-version: '1.20'
+load: STARTUP
+authors: [ImajinDevon]
+description: A fully customizable warp plugin with GUIs.
