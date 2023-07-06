@@ -167,7 +167,6 @@ public class WarpTabExecutor implements TabExecutor {
             completions.addAll(TAB_COMPLETIONS);
 
             if (sender.hasPermission("bluewarps.admin")) {
-                System.out.println("admin");
                 completions.addAll(ADMIN_TAB_COMPLETIONS);
             }
             return completions;
