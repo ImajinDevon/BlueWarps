@@ -1,7 +1,19 @@
 name: BlueWarps
 version: '${version}'
-main: com.github.imajindevon.bluewarps.BlueWarps
+main: com.github.imajindevon.bluewarps.BlueWarpsPlugin
 api-version: '1.20'
 load: STARTUP
 authors: [ImajinDevon]
-description: A fully customizable warp plugin with GUIs.
+description: A fully customizable warp plugin.
+
+commands:
+  warp:
+    description: Warp to the given destination.
+
+permissions:
+  bluewarps.warp:
+    description: Permission to execute and view warp commands.
+    default: true
+  bluewarps.admin:
+    description: Permission to create and remove warps, and reload the config
+    default: op

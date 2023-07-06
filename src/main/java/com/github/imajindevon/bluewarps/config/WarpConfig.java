@@ -1,8 +1,10 @@
 package com.github.imajindevon.bluewarps.config;
 
-import com.github.imajindevon.bluelib.config.PathConfig;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,45 +13,75 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public final class WarpConfigHandler {
+public final class WarpConfig {
+    private final Plugin plugin;
+    private final int warpDelay;
     private final Map<String, Location> warps;
-    private final PathConfig config;
 
-    private WarpConfigHandler(@NotNull Map<String, Location> warps, @NotNull PathConfig config) {
+    public WarpConfig(
+        @NotNull Plugin plugin,
+        int warpDelay,
+        @NotNull Map<String, Location> warps
+    )
+    {
+        this.plugin = plugin;
+        this.warpDelay = warpDelay;
         this.warps = warps;
-        this.config = config;
     }
 
-    public void setWarpLocation(@NotNull String warpName, @NotNull Location warpLocation) {
-        this.warps.put(warpName, warpLocation);
+    public void copySaveAsync() {
+        for (Map.Entry<String, Location> entry : this.warps.entrySet()) {
+            this.plugin.getConfig().set(entry.getKey(), entry.getValue());
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, this.plugin::saveConfig);
     }
 
     @Nullable
-    public Location getLocation(@NotNull String warpName) {
+    public Location getWarpLocation(@NotNull String warpName) {
         return this.warps.get(warpName);
     }
 
+    public void putWarp(@NotNull String warpName, @NotNull Location warpLocation) {
+        this.warps.put(warpName, warpLocation);
+    }
+
+    public boolean removeWarp(@NotNull String warpName) {
+        return this.warps.remove(warpName) != null;
+    }
+
+    public int warpDelay() {
+        return this.warpDelay;
+    }
+
     @NotNull
-    public PathConfig config() {
-        return this.config;
+    public Set<String> warpNames() {
+        return this.warps.keySet();
     }
 
     @Contract("_ -> new")
-    public static WarpConfigHandler loadOrCopyDefaults(@NotNull PathConfig file)
+    public static WarpConfig loadOrCopyDefaults(@NotNull Plugin plugin)
     throws InvalidConfigurationException
     {
-        int warpDelay = file.config().getInt("warp-delay");
+        plugin.saveDefaultConfig();
+        plugin.reloadConfig();
 
-        Set<String> warps = file.config().getKeys(false);
+        FileConfiguration config = plugin.getConfig();
+
+        int warpDelay = config.getInt("warp-delay");
+
+        Set<String> warps = config.getKeys(false);
         Map<String, Location> warpMap = new HashMap<>(warps.size());
 
         for (String key : warps) {
-            Location location = file.config().getLocation(key);
+            if (key.equals("warp-delay")) {
+                continue;
+            }
+            Location location = config.getLocation(key);
             if (location == null) {
                 throw new InvalidConfigurationException("Invalid location for warp '" + key + "'");
             }
             warpMap.put(key, location);
         }
-        return new WarpConfigHandler(warpMap, file);
+        return new WarpConfig(plugin, warpDelay, warpMap);
     }
 }
